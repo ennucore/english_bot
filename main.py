@@ -3,12 +3,17 @@ import json
 from telebot import types
 import random
 from googletrans import Translator
+from gtts import gTTS
+
+def say(text):
+    gTTS(text=text, lang='en').save('output.mp3')
 
 
 global data
 data = {}
 st = """
 Hello! It is a bot you can learn English with.
+type /dicts to show your dictionaries. Type word to translate. You can add words to dictionaries and train words from dictionary.
 """
 
 
@@ -35,10 +40,7 @@ telebot.apihelper.proxy = {'https':'socks5://swcbbabh:aYEbh6q5gQ@178.32.218.16:3
 token="605222877:AAH6RubE3uiuBpneBQuTyWT5zI9GYf6IrvI"
 bot=telebot.TeleBot(token)
 def eng(word):
-    try:
-        return revdic[word.lower()]
-    except:
-        return word.lower()
+    return revdic[word]
     
     
 @bot.message_handler(commands=['start'])
@@ -76,7 +78,15 @@ def callback_inline(call):
     elif call.data.split(':')[0] == 'train':
         bot.send_message(chat, 'Train mode. Type exit to quit')
         r = random.choice(data[str(chat)]['dicts'][int(call.data.split(':')[1])]['words'])
-        bot.send_message(chat, r)
+        rnd = random.randint(1,3)
+        if rnd == 1:
+            bot.send_message(chat, r)
+        elif rnd == 2:
+            bot.send_message(chat, revdic[r])
+        else:
+            say(r)
+            with open('output.mp3', 'rb') as f:
+                bot.send_voice(chat, f)
         data[str(chat)]['status'] = 'train:'+ call.data.split(':')[1] + ':'+r
         
         
@@ -91,12 +101,20 @@ def ans(msg):
     elif msg.text == 'exit':
         data[str(chat)]['status'] = ''
     elif data[str(chat)]['status'].split(':')[0] == 'train':
-        if eng(msg.text) == data[str(chat)]['status'].split(':')[2]:
+        if eng(msg.text).lower() == data[str(chat)]['status'].split(':')[2].lower():
             bot.send_message(chat, 'yes')
         else:
             bot.send_message(chat, 'no')
         r = random.choice(data[str(chat)]['dicts'][int(data[str(chat)]['status'].split(':')[1])]['words'])
-        bot.send_message(chat, r)
+        rnd = random.randint(1,3)
+        if rnd == 1:
+            bot.send_message(chat, r)
+        elif rnd == 2:
+            bot.send_message(chat, revdic[r])
+        else:
+            say(r)
+            with open('output.mp3', 'rb') as f:
+                bot.send_voice(chat, f)
         data[str(chat)]['status'] = 'train:'+ data[str(chat)]['status'].split(':')[1] + ':' +r
     else:
         keyboard=types.InlineKeyboardMarkup()
