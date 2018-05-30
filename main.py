@@ -2,6 +2,7 @@ import telebot
 import json
 from telebot import types
 import random
+from googletrans import Translator
 
 
 global data
@@ -9,10 +10,19 @@ data = {}
 st = """
 Hello! It is a bot you can learn English with.
 """
-with open('dict', 'r') as f:
-    dic = json.loads(f.read())
-with open('revdict', 'r') as f:
-    revdic = json.loads(f.read())
+
+
+class Dic:
+    def __init__(self, dest='en'):
+        self.tr = Translator()
+        self.dest = dest
+
+    def __getitem__(self, item):
+        return self.tr.translate(item, dest=self.dest).text
+    
+    
+dic = Dic('ru')
+revdic = Dic()
 try:
     with open('data.dat', 'r') as f:
         data = json.loads(''.join(f.readlines()))
@@ -91,13 +101,11 @@ def ans(msg):
     else:
         keyboard=types.InlineKeyboardMarkup()
         [keyboard.add(types.InlineKeyboardButton(text='add to '+dct['name'], callback_data='add:' + str(i) + ':' + eng(msg.text))) for i, dct in enumerate(data[str(msg.chat.id)]['dicts'])]
-        try:
+        if dic.tr.detect(msg.text).lang == 'en':
             bot.send_message(chat, dic[msg.text.lower()], reply_markup=keyboard)
-        except:
-            try:
-                bot.send_message(chat, revdic[msg.text.lower()], reply_markup=keyboard)
-            except:
-                bot.send_message(chat, 'Word not found')
+        else:
+            bot.send_message(chat, revdic[msg.text.lower()], reply_markup=keyboard)
+    save()
                 
                 
 bot.polling()
