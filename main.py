@@ -74,20 +74,20 @@ def callback_inline(call):
     elif call.data.split(':')[0] == 'dict':
         keyboard=types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='train', callback_data='train:' + call.data.split(':')[1]))
-        bot.send_message(chat, data[str(chat)]['dicts'][int(call.data.split(':')[1])]['name'] + '\n' + str(len(data[str(chat)]['dicts'][int(call.data.split(':')[1])]['words']))+' words', reply_markup=keyboard)
+        bot.send_message(chat, '<b>' + data[str(chat)]['dicts'][int(call.data.split(':')[1])]['name'] + '</b>\n' + str(len(data[str(chat)]['dicts'][int(call.data.split(':')[1])]['words']))+' words', reply_markup=keyboard, parse_mode='html')
     elif call.data.split(':')[0] == 'train':
         bot.send_message(chat, 'Train mode. Type exit to quit')
         r = random.choice(data[str(chat)]['dicts'][int(call.data.split(':')[1])]['words'])
         rnd = random.randint(1,3)
         if rnd == 1:
-            bot.send_message(chat, r)
+            bot.send_message(chat, '<b>' + r.split('\n')[0] + '</b>\n' + ''.join(r.split('\n')[1:]), parse_mode='html')
         elif rnd == 2:
-            bot.send_message(chat, revdic[r])
+            bot.send_message(chat, '<b>' + revdic[r.split('\n')[0]] + '</b>', parse_mode='html')
         else:
-            say(r)
+            say(r.split('\n')[0])
             with open('output.mp3', 'rb') as f:
                 bot.send_voice(chat, f)
-        data[str(chat)]['status'] = 'train:'+ call.data.split(':')[1] + ':'+r
+        data[str(chat)]['status'] = 'train:'+ call.data.split(':')[1] + ':' + r.split('\n')[0]
         
         
 @bot.message_handler()
@@ -108,21 +108,21 @@ def ans(msg):
         r = random.choice(data[str(chat)]['dicts'][int(data[str(chat)]['status'].split(':')[1])]['words'])
         rnd = random.randint(1,3)
         if rnd == 1:
-            bot.send_message(chat, r)
+            bot.send_message(chat, '<b>' + r.split('\n')[0] + '</b>\n' + ''.join(r.split('\n')[1:]), parse_mode='html')
         elif rnd == 2:
-            bot.send_message(chat, revdic[r])
+            bot.send_message(chat, '<b>' + revdic[r.split('\n')[0]] + '</b>', parse_mode='html')
         else:
-            say(r)
+            say(r.split('\n')[0])
             with open('output.mp3', 'rb') as f:
                 bot.send_voice(chat, f)
-        data[str(chat)]['status'] = 'train:'+ data[str(chat)]['status'].split(':')[1] + ':' +r
+        data[str(chat)]['status'] = 'train:'+ data[str(chat)]['status'].split(':')[1] + ':' +r.split('\n')[0]
     else:
         keyboard=types.InlineKeyboardMarkup()
         [keyboard.add(types.InlineKeyboardButton(text='add to '+dct['name'], callback_data='add:' + str(i) + ':' + eng(msg.text))) for i, dct in enumerate(data[str(msg.chat.id)]['dicts'])]
         if dic.tr.detect(msg.text).lang == 'en':
-            bot.send_message(chat, dic[msg.text.lower()], reply_markup=keyboard)
+            bot.send_message(chat, dic[msg.text.lower().split('\n')[0]], reply_markup=keyboard)
         else:
-            bot.send_message(chat, revdic[msg.text.lower()], reply_markup=keyboard)
+            bot.send_message(chat, revdic[msg.text.lower().split('\n')[0]], reply_markup=keyboard)
     save()
                 
                 
