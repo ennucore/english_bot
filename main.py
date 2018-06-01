@@ -4,6 +4,8 @@ from telebot import types
 import random
 from googletrans import Translator
 from gtts import gTTS
+import pyqiwi
+
 
 def say(text):
     gTTS(text=text, lang='en').save('output.mp3')
@@ -11,6 +13,7 @@ def say(text):
 
 global data
 data = {}
+w=pyqiwi.Wallet(token='a640dbc70d1d1f8f11d83cff69406685', number='+79533583647')
 st = """
 Hello! It is a bot you can learn English with.
 type /dicts to show your dictionaries. Type word to translate. You can add words to dictionaries and train words from dictionary.
@@ -42,6 +45,12 @@ def save():
 #telebot.apihelper.proxy = {'https':'socks5://swcbbabh:aYEbh6q5gQ@178.32.218.16:3306'}
 token="605222877:AAH6RubE3uiuBpneBQuTyWT5zI9GYf6IrvI"
 bot=telebot.TeleBot(token)
+
+
+def tnx_by(tnx, numb):
+    return True
+
+
 def eng(word):
     return revdic[word]
     
@@ -49,10 +58,26 @@ def eng(word):
 @bot.message_handler(commands=['start'])
 def start(msg):
     if data.get(str(msg.chat.id))==None:
-        data[str(msg.chat.id)]={'dicts': [], 'status': ''}
+        data[str(msg.chat.id)]={'dicts': [], 'status': '', 'qiwi':''}
     save()
     print('start:', msg.chat.id)
     bot.send_message(msg.chat.id,st)
+
+
+@bot.message_handler(commands=['pay'])
+def pay(msg):
+    if 'paid' not in msg.text:
+        bot.send_message(msg.chat.id, 'You can pay with qiwi. Send me your number, pay to number +79533583647 and send /pay paid')
+        data[str(msg.chat.id)]['status'] = 'enter qiwi number'
+    else:
+        data[str(msg.chat.id)]['status'] = ''
+        txs = list(filter(lambda x: x.type=='IN', w.history()['transactions']))
+        for tnx in txs:
+            if tnx_by(tnx, data[str(msg.chat.id)]['qiwi']):
+                bot.send_message(msg.chat.id, 'Payment accepted')
+                break
+        else:
+            bot.send_message(msg.chat.id, 'Payment not accepted')
 
 
 @bot.message_handler(commands=['dicts'])
@@ -118,6 +143,9 @@ def ans(msg):
         data[str(chat)]['status'] = ''
     elif msg.text == 'exit':
         data[str(chat)]['status'] = ''
+    elif data[str(chat)]['status'] == 'enter qiwi number':
+        data[str(chat)]['qiwi'] = msg.text
+        bot.send_message(chat, 'number saved')
     elif data[str(chat)]['status'].split(':')[0] == 'train':
         if eng(msg.text).lower() == data[str(chat)]['status'].split(':')[2].lower():
             bot.send_message(chat, 'yes')
