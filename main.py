@@ -154,7 +154,7 @@ def ans(msg):
         if data[str(chat)]['status'].split(':')[1].startswith('_'):
             r = random.choice(themes[data[str(chat)]['status'].split(':')[1][1:]])
         else:
-            r = random.choice(data[str(chat)]['dicts'][int(call.data.split(':')[1])]['words'])
+            r = random.choice(data[str(chat)]['dicts'][int(data[str(chat)]['status'].split(':')[1])]['words'])
         rnd = random.randint(1,3)
         if rnd == 1:
             bot.send_message(chat, '<b>' + r.split('\n')[0] + '</b>\n' + ''.join(r.split('\n')[1:]), parse_mode='html')
